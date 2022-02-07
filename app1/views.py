@@ -98,6 +98,14 @@ class CategoryView(APIView):
             'message': 'success'
         }, status=200)
 
+class UserView (APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self , request, **kwargs):
+        return Response (data=
+            serializers.serialize('json', User.objects.filter(username=request.user))
+        ,status=200)
+
 
 class BookmarkView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -108,18 +116,27 @@ class BookmarkView(APIView):
                         , status=200)
 
     def post(self, request, **kwargs):
-        html_data = parser(str(request.data['url']))
-        bookmark = Bookmarks.objects.create(title=html_data.get('title'), url=request.data['url'],
-                                 category=request.data['category'],
-                                 description=html_data.get('description'),
-                                 favicon=html_data.get('favicon'),
-                                 image=html_data.get('image'),
-                                 user=request.user)
-        return Response(data={
-            'title': bookmark.title,
-            'url': bookmark.url,
-            'description': bookmark.description,
-            'category': bookmark.category,
-            'favicon': bookmark.favicon,
-            'image': bookmark.image,
-        }, status=200)
+
+        try:
+            html_data = parser(str(request.data['url']))
+
+            bookmark = Bookmarks.objects.create(title=html_data.get('title'), url=request.data['url'],
+                                    category=request.data['category'],
+                                    description=html_data.get('description'),
+                                    favicon=html_data.get('favicon'),
+                                    image=html_data.get('image'),
+                                    user=request.user)
+
+            return Response(data={
+                'title': bookmark.title,
+                'url': bookmark.url,
+                'description': bookmark.description,
+                'category': bookmark.category,
+                'favicon': bookmark.favicon,
+                'image': bookmark.image,
+            }, status=200)
+
+        except:
+            return Response (data='htmlParser Error!',status=500)
+
+

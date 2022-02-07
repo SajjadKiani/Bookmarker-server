@@ -15,6 +15,9 @@ from bs4 import BeautifulSoup
 def parser(my_url):
     answer = {}
 
+    if not my_url.endswith('/'):
+        my_url += '/'
+
     webUrl = urllib.request.urlopen(my_url)
 
     data = webUrl.read()
@@ -26,8 +29,8 @@ def parser(my_url):
 
         temp = ''
 
-        if (link['href'].startswith('http') == False):
-            if (link['href'].startswith('/') == False):
+        if not link['href'].startswith('http'):
+            if not link['href'].startswith('/'):
                 temp = my_url + '/' + link['href']
             else:
                 temp = my_url + link['href']
@@ -89,10 +92,11 @@ class CategoryView(APIView):
 
     def get(self, request, **kwargs):
         return Response(data=[
-            cat.name for cat in Category.objects.all()
+            cat.name for cat in Category.objects.filter(user=request.user)
         ], status=200)
 
     def post(self, request, **kwargs):
+        # print (request.data['name'])
         Category.objects.create(name=request.data['name'], user=request.user)
         return Response(data={
             'message': 'success'
